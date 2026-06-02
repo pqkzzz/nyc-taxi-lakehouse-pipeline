@@ -27,3 +27,9 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# dbt
+dbt_taxi/target/
+dbt_taxi/dbt_packages/
+dbt_taxi/logs/
+dbt_taxi/.user.yml
