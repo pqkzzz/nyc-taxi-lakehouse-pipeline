@@ -1,0 +1,8 @@
+name: nyc_taxi_lakehouse
+version: "1.0.0"
+config-version: 2
+
+profile: nyc_taxi_lakehouse
+
+model-paths: ["models"]
+test-paths: ["tests"]
