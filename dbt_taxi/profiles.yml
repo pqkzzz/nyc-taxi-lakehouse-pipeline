@@ -1,0 +1,12 @@
+nyc_taxi_lakehouse:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      method: none
+      user: admin
+      host: localhost
+      port: 8082
+      database: demo
+      schema: taxi_gold
+      threads: 4
