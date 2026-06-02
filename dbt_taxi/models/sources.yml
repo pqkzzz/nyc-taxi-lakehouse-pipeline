@@ -1,0 +1,128 @@
+version: 2
+
+sources:
+  - name: taxi_bronze
+    database: demo
+    schema: taxi_bronze
+    tables:
+      - name: yellow_taxi_trips
+        columns:
+          - name: source_file
+            tests:
+              - not_null
+
+          - name: ingestion_timestamp
+            tests:
+              - not_null
+
+  - name: taxi_silver
+    database: demo
+    schema: taxi_silver
+    tables:
+      - name: yellow_taxi_trips_clean
+        columns:
+          - name: pickup_datetime
+            tests:
+              - not_null
+
+          - name: dropoff_datetime
+            tests:
+              - not_null
+
+          - name: trip_distance
+            tests:
+              - not_null
+
+          - name: fare_amount
+            tests:
+              - not_null
+
+          - name: total_amount
+            tests:
+              - not_null
+
+          - name: passenger_count
+            tests:
+              - not_null
+
+          - name: pickup_location_id
+            tests:
+              - not_null
+
+          - name: dropoff_location_id
+            tests:
+              - not_null
+
+          - name: pickup_date
+            tests:
+              - not_null
+
+          - name: pickup_hour
+            tests:
+              - not_null
+
+      - name: taxi_zones
+        columns:
+          - name: location_id
+            tests:
+              - not_null
+              - unique
+
+          - name: borough
+            tests:
+              - not_null
+
+          - name: zone
+            tests:
+              - not_null
+
+  - name: taxi_gold
+    database: demo
+    schema: taxi_gold
+    tables:
+      - name: mart_daily_revenue
+        columns:
+          - name: pickup_date
+            tests:
+              - not_null
+              - unique
+
+          - name: total_trips
+            tests:
+              - not_null
+
+          - name: total_revenue
+            tests:
+              - not_null
+
+      - name: mart_hourly_demand
+        columns:
+          - name: pickup_hour
+            tests:
+              - not_null
+              - unique
+
+          - name: total_trips
+            tests:
+              - not_null
+
+      - name: mart_pickup_zone_performance
+        columns:
+          - name: zone
+            tests:
+              - not_null
+
+          - name: total_trips
+            tests:
+              - not_null
+
+      - name: mart_payment_type_summary
+        columns:
+          - name: payment_type
+            tests:
+              - not_null
+              - unique
+
+          - name: total_trips
+            tests:
+              - not_null
