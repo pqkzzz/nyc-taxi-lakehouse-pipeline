@@ -1,0 +1,97 @@
+services:
+  spark-iceberg:
+    image: tabulario/spark-iceberg
+    container_name: spark-iceberg
+    env_file:
+      - .env
+    networks:
+      iceberg_net:
+    depends_on:
+      - rest
+      - minio
+    volumes:
+      - ./warehouse:/home/iceberg/warehouse
+      - ./:/home/iceberg/project
+    environment:
+      AWS_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY}
+      AWS_REGION: ${MINIO_REGION}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      ICEBERG_REST_URI: ${ICEBERG_REST_URI}
+      ICEBERG_WAREHOUSE: ${ICEBERG_WAREHOUSE}
+      ICEBERG_CATALOG: ${ICEBERG_CATALOG}
+    ports:
+      - "8888:8888"
+      - "8180:8080"
+      - "10000:10000"
+      - "10001:10001"
+
+  rest:
+    image: apache/iceberg-rest-fixture
+    container_name: iceberg-rest
+    env_file:
+      - .env
+    networks:
+      iceberg_net:
+    ports:
+      - "8181:8181"
+    environment:
+      AWS_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY}
+      AWS_REGION: ${MINIO_REGION}
+      CATALOG_WAREHOUSE: ${ICEBERG_WAREHOUSE}
+      CATALOG_IO__IMPL: org.apache.iceberg.aws.s3.S3FileIO
+      CATALOG_S3_ENDPOINT: ${MINIO_ENDPOINT}
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    env_file:
+      - .env
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_DOMAIN: minio
+    networks:
+      iceberg_net:
+        aliases:
+          - warehouse.minio
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    command: ["server", "/data", "--console-address", ":9001"]
+
+  mc:
+    image: minio/mc
+    container_name: mc
+    env_file:
+      - .env
+    depends_on:
+      - minio
+    networks:
+      iceberg_net:
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set minio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}) do echo 'waiting for minio...' && sleep 1; done;
+      /usr/bin/mc mb --ignore-existing minio/${MINIO_BUCKET};
+      /usr/bin/mc anonymous set public minio/${MINIO_BUCKET};
+      tail -f /dev/null
+      "
+
+  trino:
+    image: trinodb/trino:481
+    container_name: trino
+    env_file:
+      - .env
+    networks:
+      iceberg_net:
+    depends_on:
+      - rest
+      - minio
+    ports:
+      - "${TRINO_PORT}:8080"
+    volumes:
+      - ./trino/catalog:/etc/trino/catalog
+
+networks:
+  iceberg_net:
