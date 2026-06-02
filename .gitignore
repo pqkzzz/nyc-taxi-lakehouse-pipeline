@@ -8,6 +8,7 @@ venv/
 .env
 .env.*
 !.env.example
+trino/catalog/taxi.properties
 
 # Data files
 data/raw/*
