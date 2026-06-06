@@ -93,5 +93,23 @@ services:
     volumes:
       - ./trino/catalog:/etc/trino/catalog
 
+  airflow:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: airflow
+    depends_on:
+      - spark-iceberg
+      - trino
+    networks:
+      iceberg_net:
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./:/opt/airflow/project
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8081:8080"
+    command: standalone
+
 networks:
   iceberg_net:
